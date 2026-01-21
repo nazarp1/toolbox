@@ -1,10 +1,10 @@
-/* =========================================================
-   THEME TOKENS (BROWSER-DRIVEN ONLY)
-   ========================================================= */
+/* ==================================== */
+   THEME TOKENS
+/* ==================================== */
 
 :root{
-  /* Base (DARK) */
-  --bg:#0b0c0f;
+  /* Base (DARK MODE) */
+  --bg:#1f1f1f;
   --text:#f4f5f7;
   --muted:rgba(244,245,247,.78);
   --muted2:rgba(244,245,247,.62);
@@ -42,7 +42,7 @@
   --diag-light: rgba(244,245,247,.92);
   --diag-label: rgba(244,245,247,.70);
 }
-
+/* LIGHT THEME */
 @media (prefers-color-scheme: light){
   :root{
     --bg:#f7f7f8;
@@ -59,7 +59,8 @@
     --border2:rgba(17,24,39,.18);
 
     --shadow:none;
-
+   
+     /* Accents */
     --danger:#dc2626;
     --ok:#0f766e;
 
@@ -76,9 +77,9 @@
   }
 }
 
-/* =========================================================
+/* ==================================== */
    BASE
-   ========================================================= */
+/* ==================================== */
 
 *{box-sizing:border-box}
 html{ overflow-y: scroll; }
@@ -99,9 +100,9 @@ body{
   gap:18px;
 }
 
-/* =========================================================
+/* ==================================== */
    NAVBAR
-   ========================================================= */
+/* ==================================== */
 
 .nav{
   display:flex;
@@ -170,9 +171,9 @@ body{
   text-decoration:none;
 }
 
-/* =========================================================
+/* ==================================== */
    TYPOGRAPHY
-   ========================================================= */
+/* ==================================== */
 
 header{ padding:8px 2px; }
 
@@ -202,9 +203,9 @@ h2{
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* =========================================================
+/* ==================================== */
    CARDS / FORMS
-   ========================================================= */
+/* ==================================== */
 
 .card{
   background:var(--surface-1);
@@ -289,7 +290,7 @@ button:hover{
   opacity:.95;
 }
 
-/* Small meta + pills */
+/* -------- Small meta + pills -------- */
 .miniMeta{
   margin-top:10px;
   font-size:12px;
@@ -335,7 +336,7 @@ button:hover{
   opacity:0.95;
 }
 
-/* ---- Results ---- */
+/* -------- Results -------- */
 .resultGrid{
   display:grid;
   grid-template-columns:repeat(2, minmax(0,1fr));
@@ -358,7 +359,7 @@ button:hover{
 .resultValue{font-size:20px; font-weight:800; margin-top:6px;}
 .resultMeta{font-size:12px; color:var(--muted2); margin-top:4px;}
 
-/* ---- Rows ---- */
+/* -------- Rows -------- */
 .sectionTitle{font-size:13px; font-weight:650; margin:10px 0 8px;}
 .list{display:flex; flex-direction:column; gap:8px;}
 .row{
@@ -372,9 +373,9 @@ button:hover{
   font-size:14px;
 }
 
-/* =========================================================
+/* ==================================== */
    HOME TILES
-   ========================================================= */
+/* ==================================== */
 
 .gridHome{
   display:grid;
@@ -450,9 +451,9 @@ button:hover{
   line-height:1.45;
 }
 
-/* =========================================================
+/* ==================================== */
    LIGHT SPACING DIAGRAM
-   ========================================================= */
+/* ==================================== */
 
 .diagramWrap{
   margin-top:12px;
@@ -472,9 +473,9 @@ button:hover{
   display:block;
 }
 
-/* =========================================================
+/* ==================================== */
    CALC BADGES
-   ========================================================= */
+/* ==================================== */
 
 .computedBadge{
   display:inline-block;
@@ -487,9 +488,9 @@ button:hover{
   margin-left:8px;
 }
 
-/* =========================================================
+/* ==================================== */
    COLLAPSIBLE ISLAND
-   ========================================================= */
+/* ==================================== */
 
 details.island{
   border:1px solid var(--border);
@@ -516,9 +517,9 @@ details.island > summary::after{
 details.island[open] > summary::after{ transform: rotate(180deg); }
 details.island[open] > summary{ margin-bottom:10px; }
 
-/* =========================================================
+/* ==================================== */
    RESPONSIVE
-   ========================================================= */
+/* ==================================== */
 
 @media (max-width: 900px){
   .gridHome{grid-template-columns: repeat(2, minmax(0, 1fr));}
@@ -532,3 +533,4 @@ details.island[open] > summary{ margin-bottom:10px; }
   body{padding:18px;}
   .gridHome{grid-template-columns: 1fr;}
 }
+
