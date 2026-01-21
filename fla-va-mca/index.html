@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FLA / VA / kW / MCA Calculator</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../styles/common.css">
+</head>
+
+<body>
+  <div class="container">
+
+    <nav class="nav">
+      <a href="../">Nazar's Toolbox</a>
+      <div class="navlinks">
+        <a href="../light-spacing/">Light Spacing</a>
+        <a href="../fla-va-mca/" aria-current="page">FLA / VA / MCA</a>
+        <span class="disabledLink">(Future)</span>
+      </div>
+    </nav>
+
+    <header>
+      <h1>FLA / VA / kW / MCA Calculator</h1>
+      <div class="subhead">
+        Bidirectional solver. Enter any combination of values — as soon as enough info is provided,
+        the calculator fills the rest. <span class="mono">Last edited wins</span>.
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Inputs</h2>
+
+      <div class="grid">
+        <div class="field">
+          <label for="voltage">Voltage (V)</label>
+          <input id="voltage" type="number" step="0.01" placeholder="e.g. 208" />
+          <div class="help">Used with phase to compute VA/FLA. Can be solved if VA + FLA are known.</div>
+        </div>
+
+        <div class="field">
+          <label for="phase">Phase</label>
+          <select id="phase">
+            <option value="1">1Ø</option>
+            <option value="3" selected>3Ø</option>
+          </select>
+          <div class="help">Affects VA ↔ FLA formula.</div>
+        </div>
+
+        <div class="field">
+          <label>&nbsp;</label>
+          <button id="resetBtn">Reset</button>
+          <div class="help">Clears all values.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="va">Load VA</label>
+          <input id="va" type="number" step="0.01" placeholder="e.g. 12000" />
+          <div class="help">Apparent power (VA).</div>
+        </div>
+
+        <div class="field">
+          <label for="kva">Load kVA</label>
+          <input id="kva" type="number" step="0.001" placeholder="e.g. 12" />
+          <div class="help">kVA = VA / 1000 (bidirectional).</div>
+        </div>
+
+        <div class="field">
+          <label for="kw">Load kW</label>
+          <input id="kw" type="number" step="0.001" placeholder="e.g. 10" />
+          <div class="help">Real power. If PF is provided, kW can compute VA.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="pf">Power Factor (PF)</label>
+          <input id="pf" type="number" step="0.001" placeholder="e.g. 0.90" />
+          <div class="help" id="pfHelp">Required to convert kW ↔ VA. Typical range: 0–1.</div>
+        </div>
+
+        <div class="field">
+          <label for="eff">Efficiency (optional)</label>
+          <input id="eff" type="number" step="0.001" placeholder="e.g. 0.95" />
+          <div class="help" id="effHelp">Optional. If used, treat kW as output power. Typical range: 0–1.</div>
+        </div>
+
+        <div class="field">
+          <label for="fla">FLA (A)</label>
+          <input id="fla" type="number" step="0.001" placeholder="e.g. 33.3" />
+          <div class="help">Full load current.</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="mca">MCA (A)</label>
+          <input id="mca" type="number" step="0.001" placeholder="e.g. 41.6" />
+          <div class="help">Minimum Circuit Ampacity.</div>
+        </div>
+
+        <div class="field">
+          <label for="factor">MCA Factor</label>
+          <input id="factor" type="number" step="0.001" value="1.25" />
+          <div class="help" id="factorHelp">Used for MCA ↔ FLA (MCA = Factor × FLA).</div>
+        </div>
+
+        <div class="field">
+          <label>&nbsp;</label>
+          <div class="help">Tip: enter VA+V+phase, or MCA+factor, or kW+PF.</div>
+        </div>
+      </div>
+
+      <div id="statusOk" class="ok" style="display:none;"></div>
+      <div id="error" class="error" style="display:none;"></div>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
+
+      <div class="miniMeta">
+        <span class="pill"><strong>Solved from:</strong> <span id="solveSource">—</span></span>
+        <span class="pill"><strong>Updated:</strong> <span id="updatedAt">—</span></span>
+      </div>
+
+      <div class="resultGrid3">
+        <div class="resultBox">
+          <div class="resultLabel">FLA (A) <span class="computedBadge" id="flaBadge" style="display:none;">calculated</span></div>
+          <div class="resultValue" id="outFLA">—</div>
+          <div class="resultMeta" id="outFLAMeta">—</div>
+        </div>
+
+        <div class="resultBox">
+          <div class="resultLabel">Load VA <span class="computedBadge" id="vaBadge" style="display:none;">calculated</span></div>
+          <div class="resultValue" id="outVA">—</div>
+          <div class="resultMeta" id="outVAMeta">—</div>
+        </div>
+
+        <div class="resultBox">
+          <div class="resultLabel">MCA (A) <span class="computedBadge" id="mcaBadge" style="display:none;">calculated</span></div>
+          <div class="resultValue" id="outMCA">—</div>
+          <div class="resultMeta" id="outMCAMeta">—</div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="actions">
+        <button id="copyBtn">Copy results</button>
+        <div class="help">See “Notes & formulas” below for all equations used by this calculator.</div>
+      </div>
+    </section>
+
+    <details class="island">
+      <summary>Notes & formulas</summary>
+
+      <p class="help" style="margin-top:10px;">
+        This section lists <strong>all equations used in the code</strong> so you can verify calculations.
+        The solver uses a “<span class="mono">last edited wins</span>” approach when multiple paths are possible.
+      </p>
+
+      <p class="help" style="margin-top:10px;">Symbols:</p>
+      <ul class="help" style="margin-left:18px;">
+        <li><span class="mono">V</span> = voltage (V)</li>
+        <li><span class="mono">I</span> = current (A) (FLA in this tool)</li>
+        <li><span class="mono">VA</span> = apparent power (volt-amps)</li>
+        <li><span class="mono">kVA</span> = kilovolt-amps</li>
+        <li><span class="mono">kW</span> = real power (kilowatts)</li>
+        <li><span class="mono">PF</span> = power factor (0–1)</li>
+        <li><span class="mono">eff</span> = efficiency (0–1). If blank, code assumes <span class="mono">eff = 1</span></li>
+        <li><span class="mono">MCA</span> = minimum circuit ampacity</li>
+        <li><span class="mono">Factor</span> = MCA multiplier (default 1.25 in the tool)</li>
+      </ul>
+
+      <hr />
+
+      <div class="sectionTitle">VA ↔ kVA conversion</div>
+      <p class="mono">
+        kVA =
+        <span class="frac"><span class="top">VA</span><span class="bar"></span><span class="bottom">1000</span></span>
+        &nbsp;&nbsp;&nbsp;and&nbsp;&nbsp;&nbsp;
+        VA = 1000 × kVA
+      </p>
+
+      <div class="sectionTitle">VA ↔ FLA (Current) using phase</div>
+
+      <p class="help" style="margin-top:6px;">Single-phase (1Ø):</p>
+      <p class="mono">
+        VA = V × I
+        &nbsp;&nbsp;&nbsp;⇔&nbsp;&nbsp;&nbsp;
+        I =
+        <span class="frac"><span class="top">VA</span><span class="bar"></span><span class="bottom">V</span></span>
+      </p>
+
+      <p class="help" style="margin-top:10px;">Three-phase (3Ø), using line-to-line voltage:</p>
+      <p class="mono">
+        VA = √3 × V × I
+        &nbsp;&nbsp;&nbsp;⇔&nbsp;&nbsp;&nbsp;
+        I =
+        <span class="frac"><span class="top">VA</span><span class="bar"></span><span class="bottom">√3 × V</span></span>
+      </p>
+
+      <div class="sectionTitle">Voltage from VA and FLA</div>
+      <p class="help" style="margin-top:6px;">Single-phase (1Ø):</p>
+      <p class="mono">
+        V =
+        <span class="frac"><span class="top">VA</span><span class="bar"></span><span class="bottom">I</span></span>
+      </p>
+
+      <p class="help" style="margin-top:10px;">Three-phase (3Ø):</p>
+      <p class="mono">
+        V =
+        <span class="frac"><span class="top">VA</span><span class="bar"></span><span class="bottom">√3 × I</span></span>
+      </p>
+
+      <div class="sectionTitle">kW ↔ VA (requires PF; efficiency optional)</div>
+
+      <p class="help" style="margin-top:6px;">
+        The code converts between kW and VA using PF. Efficiency is applied exactly like this:
+        <br>
+        • If <span class="mono">eff</span> is blank/invalid → tool uses <span class="mono">eff = 1</span>
+        <br>
+        • If <span class="mono">eff</span> is provided → tool treats <span class="mono">kW</span> as <strong>output</strong> power and back-calculates input power
+      </p>
+
+      <p class="help" style="margin-top:10px;">VA from kW:</p>
+      <p class="mono">
+        VA =
+        <span class="frac">
+          <span class="top">(kW × 1000) ÷ eff</span>
+          <span class="bar"></span>
+          <span class="bottom">PF</span>
+        </span>
+      </p>
+
+      <p class="help" style="margin-top:10px;">kW from VA:</p>
+      <p class="mono">
+        kW =
+        <span class="frac">
+          <span class="top">(VA × PF) × eff</span>
+          <span class="bar"></span>
+          <span class="bottom">1000</span>
+        </span>
+      </p>
+
+      <div class="sectionTitle">MCA ↔ FLA using Factor</div>
+      <p class="mono">
+        MCA = Factor × FLA
+        &nbsp;&nbsp;&nbsp;⇔&nbsp;&nbsp;&nbsp;
+        FLA =
+        <span class="frac"><span class="top">MCA</span><span class="bar"></span><span class="bottom">Factor</span></span>
+      </p>
+    </details>
+
+  </div>
+
+<script>
+  const el = (id) => document.getElementById(id);
+
+  const voltageEl = el("voltage");
+  const phaseEl = el("phase");
+  const vaEl = el("va");
+  const kvaEl = el("kva");
+  const kwEl = el("kw");
+  const pfEl = el("pf");
+  const effEl = el("eff");
+  const flaEl = el("fla");
+  const mcaEl = el("mca");
+  const factorEl = el("factor");
+
+  const pfHelp = el("pfHelp");
+  const effHelp = el("effHelp");
+  const factorHelp = el("factorHelp");
+
+  const solveSourceEl = el("solveSource");
+  const updatedAtEl = el("updatedAt");
+
+  const outFLA = el("outFLA");
+  const outVA = el("outVA");
+  const outMCA = el("outMCA");
+
+  const outFLAMeta = el("outFLAMeta");
+  const outVAMeta = el("outVAMeta");
+  const outMCAMeta = el("outMCAMeta");
+
+  const errorEl = el("error");
+  const okEl = el("statusOk");
+
+  const flaBadge = el("flaBadge");
+  const vaBadge = el("vaBadge");
+  const mcaBadge = el("mcaBadge");
+
+  let lastEdited = null;
+
+  function nowTimeStr() {
+    const d = new Date();
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function setInvalid(inputEl, helpEl, isBad, msg) {
+    if (inputEl) inputEl.classList.toggle("invalid", !!isBad);
+    if (helpEl && typeof msg === "string") {
+      if (isBad) {
+        helpEl.classList.add("helpDanger");
+        helpEl.classList.remove("help");
+        helpEl.textContent = msg;
+      } else {
+        helpEl.classList.remove("helpDanger");
+        helpEl.classList.add("help");
+      }
+    }
+  }
+
+  // IMPORTANT: treat 0 as "missing" for status/reference purposes
+  function num(val) {
+    const s = String(val ?? "").trim();
+    if (s === "") return NaN;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+  function hasData(n) {
+    return Number.isFinite(n) && n !== 0;
+  }
+
+  function fmt(n, decimals = 3) {
+    return Number.isFinite(n) ? n.toFixed(decimals) : "—";
+  }
+  function sqrt3() { return 1.7320508075688772; }
+
+  function clearBadges() {
+    flaBadge.style.display = "none";
+    vaBadge.style.display = "none";
+    mcaBadge.style.display = "none";
+  }
+  function showBadge(which) {
+    if (which === "FLA") flaBadge.style.display = "inline-block";
+    if (which === "VA") vaBadge.style.display = "inline-block";
+    if (which === "MCA") mcaBadge.style.display = "inline-block";
+  }
+  function setError(msg) {
+    errorEl.style.display = msg ? "block" : "none";
+    errorEl.textContent = msg || "";
+  }
+  function setOk(msg) {
+    okEl.style.display = msg ? "block" : "none";
+    okEl.textContent = msg || "";
+  }
+
+  function flaFromVA(VA, V, phase) {
+    if (!Number.isFinite(VA) || !Number.isFinite(V) || V === 0) return NaN;
+    if (phase === 1) return VA / V;
+    return VA / (sqrt3() * V);
+  }
+  function vaFromFLA(FLA, V, phase) {
+    if (!Number.isFinite(FLA) || !Number.isFinite(V)) return NaN;
+    if (phase === 1) return V * FLA;
+    return sqrt3() * V * FLA;
+  }
+  function solveVFromVAFLA(VA, FLA, phase) {
+    if (!Number.isFinite(VA) || !Number.isFinite(FLA) || FLA === 0) return NaN;
+    if (phase === 1) return VA / FLA;
+    return VA / (sqrt3() * FLA);
+  }
+  function mcaFromFLA(FLA, factor) {
+    if (!Number.isFinite(FLA) || !Number.isFinite(factor) || factor === 0) return NaN;
+    return FLA * factor;
+  }
+  function flaFromMCA(MCA, factor) {
+    if (!Number.isFinite(MCA) || !Number.isFinite(factor) || factor === 0) return NaN;
+    return MCA / factor;
+  }
+  function vaFromKVA(kva) { return Number.isFinite(kva) ? kva * 1000 : NaN; }
+  function kvaFromVA(va) { return Number.isFinite(va) ? va / 1000 : NaN; }
+
+  function vaFromKW(kW, pf, eff) {
+    if (!Number.isFinite(kW)) return NaN;
+    const P = kW * 1000;
+    const usePF = Number.isFinite(pf) && pf > 0 ? pf : NaN;
+    const useEff = Number.isFinite(eff) && eff > 0 ? eff : 1;
+    if (!Number.isFinite(usePF)) return NaN;
+    const inputWatts = P / useEff;
+    return inputWatts / usePF;
+  }
+  function kwFromVA(VA, pf, eff) {
+    if (!Number.isFinite(VA)) return NaN;
+    const usePF = Number.isFinite(pf) && pf > 0 ? pf : NaN;
+    const useEff = Number.isFinite(eff) && eff > 0 ? eff : 1;
+    if (!Number.isFinite(usePF)) return NaN;
+    const inputWatts = VA * usePF;
+    const outputWatts = inputWatts * useEff;
+    return outputWatts / 1000;
+  }
+
+  function readInputs() {
+    return {
+      V: num(voltageEl.value),
+      phase: Number(phaseEl.value),
+      VA: num(vaEl.value),
+      kVA: num(kvaEl.value),
+      kW: num(kwEl.value),
+      PF: num(pfEl.value),
+      eff: num(effEl.value),
+      FLA: num(flaEl.value),
+      MCA: num(mcaEl.value),
+      factor: num(factorEl.value),
+    };
+  }
+
+  function labelFor(field) {
+    const map = {
+      voltage: "Voltage",
+      phase: "Phase",
+      va: "VA",
+      kva: "kVA",
+      kw: "kW",
+      pf: "PF",
+      eff: "Efficiency",
+      fla: "FLA",
+      mca: "MCA",
+      factor: "MCA Factor",
+      reset: "Reset"
+    };
+    return map[field] || "—";
+  }
+
+  function applyValidation(state) {
+    const { V, VA, FLA, kW, PF, eff, factor } = state;
+
+    // Reset all invalid flags
+    voltageEl.classList.remove("invalid");
+    pfEl.classList.remove("invalid");
+    effEl.classList.remove("invalid");
+    factorEl.classList.remove("invalid");
+
+    // Reset help to defaults
+    pfHelp.className = "help";
+    pfHelp.textContent = "Required to convert kW ↔ VA. Typical range: 0–1.";
+    effHelp.className = "help";
+    effHelp.textContent = "Optional. If used, treat kW as output power. Typical range: 0–1.";
+    factorHelp.className = "help";
+    factorHelp.textContent = "Used for MCA ↔ FLA (MCA = Factor × FLA).";
+
+    // Factor must be > 0 if used
+    if (Number.isFinite(factor) && factor <= 0) {
+      setInvalid(factorEl, factorHelp, true, "Factor must be > 0.");
+    }
+
+    // PF validation: only matters if kW is being used (or PF typed)
+    const pfEntered = String(pfEl.value ?? "").trim() !== "";
+    const kwEntered = String(kwEl.value ?? "").trim() !== "";
+
+    if (kwEntered) {
+      if (!(Number.isFinite(PF) && PF > 0 && PF <= 1)) {
+        setInvalid(pfEl, pfHelp, true, "PF is required for kW solving (valid range: 0–1).");
+      }
+    } else if (pfEntered && !(Number.isFinite(PF) && PF > 0 && PF <= 1)) {
+      setInvalid(pfEl, pfHelp, true, "PF should be between 0 and 1.");
+    }
+
+    // Efficiency validation if provided (optional)
+    const effEntered = String(effEl.value ?? "").trim() !== "";
+    if (effEntered && !(Number.isFinite(eff) && eff > 0 && eff <= 1)) {
+      setInvalid(effEl, effHelp, true, "Efficiency should be between 0 and 1 (or leave blank).");
+    }
+
+    // Voltage validation: only flag if required to solve and missing
+    // If VA+V needed to compute current, or FLA+V needed to compute VA
+    const needsV =
+      (Number.isFinite(VA) && !Number.isFinite(FLA)) ||
+      (Number.isFinite(FLA) && !Number.isFinite(VA)) ||
+      (kwEntered); // kW path will end up needing V to compute current if user wants FLA
+
+    if (needsV && !(Number.isFinite(V) && V > 0)) {
+      voltageEl.classList.add("invalid");
+    }
+  }
+
+  function solve() {
+    clearBadges();
+    setError("");
+    setOk("");
+
+    let { V, phase, VA, kVA, kW, PF, eff, FLA, MCA, factor } = readInputs();
+    const hasFactor = Number.isFinite(factor) && factor > 0;
+
+    // Apply validation/UI hints (no math behavior changes)
+    applyValidation({ V, phase, VA, kVA, kW, PF, eff, FLA, MCA, factor });
+
+    if (lastEdited === "kva" && Number.isFinite(kVA)) {
+      VA = vaFromKVA(kVA);
+      showBadge("VA");
+    } else if (lastEdited === "va" && Number.isFinite(VA)) {
+      kVA = kvaFromVA(VA);
+    } else {
+      if (Number.isFinite(VA) && !Number.isFinite(kVA)) kVA = kvaFromVA(VA);
+      if (Number.isFinite(kVA) && !Number.isFinite(VA)) VA = vaFromKVA(kVA);
+    }
+
+    if (lastEdited === "kw") {
+      const derivedVA = vaFromKW(kW, PF, eff);
+      if (Number.isFinite(derivedVA)) {
+        VA = derivedVA;
+        showBadge("VA");
+        kVA = kvaFromVA(VA);
+      }
+    }
+
+    if (lastEdited === "pf" || lastEdited === "eff") {
+      if (Number.isFinite(kW)) {
+        const derivedVA = vaFromKW(kW, PF, eff);
+        if (Number.isFinite(derivedVA)) {
+          VA = derivedVA;
+          showBadge("VA");
+          kVA = kvaFromVA(VA);
+        }
+      } else if (Number.isFinite(VA)) {
+        const derivedKW = kwFromVA(VA, PF, eff);
+        if (Number.isFinite(derivedKW) && lastEdited !== "kw") {
+          kwEl.value = fmt(derivedKW, 3);
+        }
+      }
+    }
+
+    if (["va","kva","kw","pf","eff"].includes(lastEdited)) {
+      if (Number.isFinite(VA) && Number.isFinite(V) && V > 0) {
+        FLA = flaFromVA(VA, V, phase); showBadge("FLA");
+      } else if (Number.isFinite(VA) && Number.isFinite(FLA)) {
+        V = solveVFromVAFLA(VA, FLA, phase);
+        if (Number.isFinite(V)) voltageEl.value = fmt(V, 2);
+      }
+      if (Number.isFinite(FLA) && hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
+    }
+
+    if (lastEdited === "fla") {
+      if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) {
+        VA = vaFromFLA(FLA, V, phase); showBadge("VA"); kVA = kvaFromVA(VA);
+      } else if (Number.isFinite(FLA) && Number.isFinite(VA)) {
+        V = solveVFromVAFLA(VA, FLA, phase);
+        if (Number.isFinite(V)) voltageEl.value = fmt(V, 2);
+      }
+      if (Number.isFinite(FLA) && hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
+    }
+
+    if (lastEdited === "mca") {
+      if (Number.isFinite(MCA) && hasFactor) { FLA = flaFromMCA(MCA, factor); showBadge("FLA"); }
+      if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) { VA = vaFromFLA(FLA, V, phase); showBadge("VA"); kVA = kvaFromVA(VA); }
+    }
+
+    if (lastEdited === "voltage" || lastEdited === "phase") {
+      if (Number.isFinite(VA) && Number.isFinite(V) && V > 0) {
+        FLA = flaFromVA(VA, V, phase); showBadge("FLA");
+        if (hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
+      } else if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) {
+        VA = vaFromFLA(FLA, V, phase); showBadge("VA"); kVA = kvaFromVA(VA);
+        if (hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
+      }
+    }
+
+    if (lastEdited === "factor") {
+      if (Number.isFinite(MCA) && hasFactor) { FLA = flaFromMCA(MCA, factor); showBadge("FLA"); }
+      else if (Number.isFinite(FLA) && hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
+      if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) { VA = vaFromFLA(FLA, V, phase); showBadge("VA"); kVA = kvaFromVA(VA); }
+    }
+
+    if (Number.isFinite(VA) && lastEdited !== "va") vaEl.value = fmt(VA, 1);
+    if (Number.isFinite(kVA) && lastEdited !== "kva") kvaEl.value = fmt(kVA, 3);
+    if (Number.isFinite(FLA) && lastEdited !== "fla") flaEl.value = fmt(FLA, 3);
+    if (Number.isFinite(MCA) && lastEdited !== "mca") mcaEl.value = fmt(MCA, 3);
+
+    if (Number.isFinite(VA) && Number.isFinite(PF) && PF > 0 && lastEdited !== "kw") {
+      const derivedKW = kwFromVA(VA, PF, eff);
+      if (Number.isFinite(derivedKW)) kwEl.value = fmt(derivedKW, 3);
+    }
+
+    outFLA.textContent = Number.isFinite(FLA) ? fmt(FLA, 3) : "—";
+    outVA.textContent  = Number.isFinite(VA) ? fmt(VA, 1) : "—";
+    outMCA.textContent = Number.isFinite(MCA) ? fmt(MCA, 3) : "—";
+
+    outFLAMeta.textContent = Number.isFinite(FLA) ? "A" : "Provide VA + V + phase OR MCA + factor OR kW + PF";
+    outVAMeta.textContent  = Number.isFinite(VA) ? "VA (kVA field auto-updates)" : "Provide FLA + V + phase OR enter VA/kVA OR kW+PF";
+    outMCAMeta.textContent = Number.isFinite(MCA) ? "A (Factor × FLA)" : "Provide FLA + factor OR enter MCA";
+
+    // Solved-from + updated UI
+    solveSourceEl.textContent = labelFor(lastEdited);
+    updatedAtEl.textContent = nowTimeStr();
+
+    // Status line (no voltage reference anymore)
+    const status = [];
+    if (hasData(VA)) status.push("VA known");
+    if (hasData(FLA)) status.push("FLA known");
+    if (hasData(MCA)) status.push("MCA known");
+    if (!Number.isFinite(V) || V <= 0) status.push("Voltage missing (needed for VA↔FLA)");
+    if (hasData(kW) && !(Number.isFinite(PF) && PF > 0)) status.push("PF needed for kW solving");
+    setOk(status.join(" • "));
+
+    window.__copyText = [
+      `FLA / VA / kW / MCA Calculator`,
+      `Voltage: ${Number.isFinite(V) ? fmt(V, 2) : "—"} V`,
+      `Phase: ${phase === 1 ? "1Ø" : "3Ø"}`,
+      `VA: ${Number.isFinite(VA) ? fmt(VA, 1) : "—"} VA`,
+      `kVA: ${Number.isFinite(VA) ? fmt(kvaFromVA(VA), 3) : "—"} kVA`,
+      `kW: ${Number.isFinite(kW) ? fmt(kW, 3) : (Number.isFinite(VA) && Number.isFinite(PF) && PF > 0 ? fmt(kwFromVA(VA, PF, eff), 3) : "—")} kW`,
+      `PF: ${Number.isFinite(PF) ? fmt(PF, 3) : "—"}`,
+      `Eff: ${Number.isFinite(eff) ? fmt(eff, 3) : "—"}`,
+      `FLA: ${Number.isFinite(FLA) ? fmt(FLA, 3) : "—"} A`,
+      `MCA: ${Number.isFinite(MCA) ? fmt(MCA, 3) : "—"} A`,
+      `Factor: ${(Number.isFinite(factor) && factor > 0) ? fmt(factor, 3) : "—"}`,
+    ].join("\n");
+  }
+
+  function render() {
+    try { solve(); }
+    catch (e) { setError("Unexpected error:\n" + (e && e.message ? e.message : String(e))); }
+  }
+
+  const setLast = (field) => { lastEdited = field; render(); };
+
+  voltageEl.addEventListener("input", () => setLast("voltage"));
+  phaseEl.addEventListener("change", () => setLast("phase"));
+  vaEl.addEventListener("input", () => setLast("va"));
+  kvaEl.addEventListener("input", () => setLast("kva"));
+  kwEl.addEventListener("input", () => setLast("kw"));
+  pfEl.addEventListener("input", () => setLast("pf"));
+  effEl.addEventListener("input", () => setLast("eff"));
+  flaEl.addEventListener("input", () => setLast("fla"));
+  mcaEl.addEventListener("input", () => setLast("mca"));
+  factorEl.addEventListener("input", () => setLast("factor"));
+
+  el("resetBtn").addEventListener("click", () => {
+    voltageEl.value = "";
+    vaEl.value = "";
+    kvaEl.value = "";
+    kwEl.value = "";
+    pfEl.value = "";
+    effEl.value = "";
+    flaEl.value = "";
+    mcaEl.value = "";
+    factorEl.value = "1.25";
+    phaseEl.value = "3";
+    lastEdited = "reset";
+    render();
+  });
+
+  el("copyBtn").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(window.__copyText || "");
+      const btn = el("copyBtn");
+      const old = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = old), 1200);
+    } catch {
+      alert("Copy failed. You can manually copy from the screen.");
+    }
+  });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    lastEdited = "phase";
+    render();
+  });
+</script>
+</body>
+</html>

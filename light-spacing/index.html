@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Light Spacing Calculator</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../styles/common.css">
+</head>
+
+<body>
+  <div class="container">
+
+    <nav class="nav">
+      <a href="../">Nazar's Toolbox</a>
+      <div class="navlinks">
+        <a href="../light-spacing/" aria-current="page">Light Spacing</a>
+        <a href="../fla-va-mca/">FLA / VA / MCA</a>
+        <span class="disabledLink">(Future)</span>
+      </div>
+    </nav>
+
+    <header>
+      <h1>Light Spacing Calculator</h1>
+      <div class="subhead">
+        Symmetric layout where wall-to-first-light = half of light-to-light spacing.
+      </div>
+    </header>
+
+    <section class="card">
+      <h2>Inputs</h2>
+
+      <div class="grid">
+        <div class="field" style="grid-column: span 2;">
+          <label for="length">Wall-to-wall length (L)</label>
+          <input id="length" placeholder="e.g. 11'-8 1/2&quot; or 140.5" value="11'-8 1/2&quot;" />
+          <div class="help">
+            Tip: If you enter a plain number (no ' or "), it will be treated as inches.
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="n">Number of lights</label>
+          <input id="n" type="number" min="1" step="1" value="2" />
+          <div class="help">Must be a whole number.</div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px;">
+        <div class="field">
+          <label for="denom">Rounding denominator</label>
+          <input id="denom" type="number" min="1" step="1" value="16" />
+          <div class="help">Fraction denominator (e.g., 16 = nearest 1/16").</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Visual Layout</h2>
+      <div class="diagramWrap">
+        <div class="diagramTitle">Dynamic Diagram</div>
+        <div id="diagram"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
+      <div id="error" class="error" style="display:none;"></div>
+
+      <div id="resultsBlock" style="display:none;">
+        <div class="miniMeta">
+          <span class="pill"><strong>Solved from:</strong> <span id="solveSource">—</span></span>
+          <span class="pill"><strong>Updated:</strong> <span id="updatedAt">—</span></span>
+        </div>
+
+        <div class="resultGrid">
+          <div class="resultBox">
+            <div class="resultLabel">Wall offset</div>
+            <div class="resultValue" id="wallOffsetFmt">—</div>
+            <div class="resultMeta" id="wallOffsetIn">—</div>
+          </div>
+
+          <div class="resultBox">
+            <div class="resultLabel">Light-to-light spacing</div>
+            <div class="resultValue" id="spacingFmt">—</div>
+            <div class="resultMeta" id="spacingIn">—</div>
+          </div>
+        </div>
+
+        <hr />
+
+        <div class="sectionTitle">Light locations from Wall 1</div>
+        <div class="list" id="positionsList"></div>
+
+        <div class="actions">
+          <button id="copyBtn">Copy results</button>
+          <div class="help">Model: spacing = L/N, wall offset = L/(2N)</div>
+        </div>
+      </div>
+    </section>
+
+    <details class="island">
+      <summary>Notes & Calculations</summary>
+
+      <p class="help" style="margin-top:10px;">
+        This calculator assumes a <strong>symmetric layout</strong> where lights are evenly spaced and the
+        distance from each wall to the nearest light is equal to
+        <strong>half of the spacing between lights</strong>.
+      </p>
+
+      <p class="help" style="margin-top:10px;">Let:</p>
+
+      <ul class="help" style="margin-left:18px;">
+        <li><span class="mono">L</span> = total wall-to-wall length</li>
+        <li><span class="mono">N</span> = number of lights</li>
+        <li><span class="mono">S</span> = spacing between adjacent lights</li>
+        <li><span class="mono">O</span> = offset from each wall to the nearest light</li>
+      </ul>
+
+      <p class="help" style="margin-top:10px;">The total length is:</p>
+      <p class="mono">L = O + (N − 1)S + O</p>
+
+      <p class="help" style="margin-top:10px;">
+        With the assumption that <span class="mono">O =</span>
+        <span class="mono"><span class="frac"><span class="top">S</span><span class="bar"></span><span class="bottom">2</span></span></span>,
+        this simplifies to:
+      </p>
+
+      <p class="mono">L = N × S</p>
+
+      <p class="help" style="margin-top:10px;">From this, the spacing and wall offset are calculated as:</p>
+
+      <p class="mono">
+        S =
+        <span class="frac"><span class="top">L</span><span class="bar"></span><span class="bottom">N</span></span>
+        <br>
+        O =
+        <span class="frac"><span class="top">L</span><span class="bar"></span><span class="bottom">2N</span></span>
+      </p>
+
+      <p class="help" style="margin-top:10px;">The position of each light measured from Wall 1 is:</p>
+      <p class="mono">x<sub>i</sub> = O + (i − 1) × S</p>
+
+      <p class="help" style="margin-top:10px;">where <span class="mono">i = 1, 2, …, N</span>.</p>
+    </details>
+
+  </div>
+
+<script>
+  function parseFeetInchesToInches(raw) {
+    if (!raw) return NaN;
+    const s = String(raw).trim();
+    const hasFeetMark = s.includes("'");
+    const hasInchMark = s.includes('"');
+
+    if (!hasFeetMark && !hasInchMark) {
+      const asNum = Number(s.replace(/,/g, ""));
+      return Number.isFinite(asNum) ? asNum : NaN;
+    }
+
+    let feet = 0;
+    let inches = 0;
+
+    const feetMatch = s.match(/(-?\d+)\s*'/);
+    if (feetMatch) feet = parseInt(feetMatch[1], 10);
+
+    const afterFeet = feetMatch ? s.slice(s.indexOf("'") + 1) : s;
+
+    const inchPart = afterFeet
+      .replace(/-/g, " ")
+      .replace(/\"/g, "")
+      .trim();
+
+    if (inchPart) {
+      const fracMatch = inchPart.match(/(\d+)?\s*(\d+)\s*\/\s*(\d+)/);
+      if (fracMatch) {
+        const whole = fracMatch[1] ? parseInt(fracMatch[1], 10) : 0;
+        const num = parseInt(fracMatch[2], 10);
+        const den = parseInt(fracMatch[3], 10);
+        inches = whole + num / den;
+      } else {
+        const numMatch = inchPart.match(/-?\d+(?:\.\d+)?/);
+        if (numMatch) inches = Number(numMatch[0]);
+      }
+    }
+
+    return feet * 12 + inches;
+  }
+
+  function gcd(a, b) {
+    let x = Math.abs(a);
+    let y = Math.abs(b);
+    while (y) [x, y] = [y, x % y];
+    return x;
+  }
+
+  function inchesToFeetInches(inches, denom = 16) {
+    if (!Number.isFinite(inches)) return "—";
+    const sign = inches < 0 ? "-" : "";
+    const abs = Math.abs(inches);
+
+    const ft = Math.floor(abs / 12);
+    const inchRemainder = abs - ft * 12;
+
+    const wholeIn = Math.floor(inchRemainder);
+    const frac = inchRemainder - wholeIn;
+
+    const n = Math.round(frac * denom);
+    let w = wholeIn;
+    let fNum = n;
+    let fDen = denom;
+
+    if (n === denom) { w += 1; fNum = 0; }
+
+    if (fNum !== 0) {
+      const g = gcd(fNum, fDen);
+      fNum /= g;
+      fDen /= g;
+    }
+
+    let finalFt = ft;
+    let finalIn = w;
+    if (finalIn >= 12) {
+      finalFt += Math.floor(finalIn / 12);
+      finalIn = finalIn % 12;
+    }
+
+    const fracStr = fNum === 0 ? "" : ` ${fNum}/${fDen}`;
+    return `${sign}${finalFt}'-${finalIn}${fracStr}"`;
+  }
+
+  // ---- UI helpers ----
+  const lengthEl = document.getElementById("length");
+  const nEl = document.getElementById("n");
+  const denomEl = document.getElementById("denom");
+  const solveSourceEl = document.getElementById("solveSource");
+  const updatedAtEl = document.getElementById("updatedAt");
+
+  let lastEdited = "—";
+
+  function setInvalid(inputEl, isBad) {
+    if (!inputEl) return;
+    inputEl.classList.toggle("invalid", !!isBad);
+  }
+
+  function nowTimeStr() {
+    const d = new Date();
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function computeResults() {
+    const lengthInput = lengthEl.value;
+    const numLights = Number(nEl.value);
+    const denomRaw = Number(denomEl.value);
+
+    // Reset invalid states each render
+    setInvalid(lengthEl, false);
+    setInvalid(nEl, false);
+    setInvalid(denomEl, false);
+
+    const L = parseFeetInchesToInches(lengthInput);
+    const Lbad = !Number.isFinite(L) || L <= 0;
+    setInvalid(lengthEl, Lbad);
+
+    if (Lbad) return { ok: false, message: "Enter a valid length." };
+
+    const N = Number(numLights);
+    const Nbad = !Number.isFinite(N) || N < 1 || !Number.isInteger(N);
+    setInvalid(nEl, Nbad);
+    if (Nbad) return { ok: false, message: "Number of lights must be a whole number ≥ 1." };
+
+    const denom = Math.max(1, Number.isFinite(denomRaw) ? denomRaw : 16);
+    const Dbad = !Number.isFinite(denomRaw) || denomRaw < 1 || !Number.isInteger(denomRaw);
+    setInvalid(denomEl, Dbad);
+    if (Dbad) return { ok: false, message: "Rounding denominator must be a whole number ≥ 1." };
+
+    const spacing = L / N;
+    const wallOffset = spacing / 2;
+    const positions = Array.from({ length: N }, (_, i) => wallOffset + i * spacing);
+
+    return { ok: true, L, N, spacing, wallOffset, positions, fractionDenom: denom };
+  }
+
+  function renderDiagram(results) {
+    const diagramEl = document.getElementById("diagram");
+    if (!diagramEl) return;
+
+    if (!results || !results.ok) { diagramEl.innerHTML = ""; return; }
+
+    const { N, L, spacing, wallOffset, fractionDenom } = results;
+
+    const css = getComputedStyle(document.documentElement);
+    const OK  = (css.getPropertyValue("--ok").trim() || "#63e6be");
+    const PRI = (css.getPropertyValue("--diag-primary").trim() || "rgba(244,245,247,.85)");
+    const SEC = (css.getPropertyValue("--diag-secondary").trim() || "rgba(244,245,247,.35)");
+    const LGT = (css.getPropertyValue("--diag-light").trim() || "rgba(244,245,247,.92)");
+    const LBL = (css.getPropertyValue("--diag-label").trim() || "rgba(244,245,247,.70)");
+
+    const vbW = 900, vbH = 220;
+    const left = 90, right = 810;
+    const lineY = 125, wallTop = 70, wallBot = 175;
+
+    const xFromIn = (inches) => left + (inches / L) * (right - left);
+    const lightXs = results.positions.map(xFromIn);
+
+    const lLabel = `Total Length L = `;
+    const lValue = inchesToFeetInches(L, fractionDenom);
+    const sLabel = `Spacing S = L/N = `;
+    const sValue = inchesToFeetInches(spacing, fractionDenom);
+    const oLabel = `Offset = S/2 = `;
+    const oValue = inchesToFeetInches(wallOffset, fractionDenom);
+
+    const arrow = (x, y, dir, color) => {
+      const pts = dir === 1
+        ? `${x},${y} ${x + 12},${y - 6} ${x + 12},${y + 6}`
+        : `${x},${y} ${x - 12},${y - 6} ${x - 12},${y + 6}`;
+      return `<polygon points="${pts}" fill="${color}"></polygon>`;
+    };
+
+    const dimLine = ({ x1, x2, y, color, label, value, labelY }) => {
+      return `
+        <line x1="${x1}" y1="${y}" x2="${x2}" y2="${y}"
+          stroke="${color}" stroke-width="2"></line>
+        ${arrow(x1, y, 1, color)}
+        ${arrow(x2, y, -1, color)}
+        <text x="${(x1 + x2) / 2}" y="${labelY ?? (y - 8)}"
+          fill="${color}" font-size="13" text-anchor="middle">
+          <tspan>${label}</tspan>
+          <tspan fill="${OK}">${value}</tspan>
+        </text>
+      `;
+    };
+
+    const lightsSvg = lightXs.map((x, idx) => `
+      <g>
+        <circle cx="${x}" cy="${lineY}" r="12" fill="${LGT}"></circle>
+        <text x="${x}" y="${lineY + 35}" fill="${LBL}" font-size="13" text-anchor="middle">
+          L${idx + 1}
+        </text>
+      </g>
+    `).join("");
+
+    const svg = `
+      <svg viewBox="0 0 ${vbW} ${vbH}" class="diagramSvg" role="img" aria-label="Light spacing diagram">
+        <line x1="${left}" y1="${lineY}" x2="${right}" y2="${lineY}"
+          stroke="${SEC}" stroke-width="2"></line>
+
+        <line x1="${left}" y1="${wallTop}" x2="${left}" y2="${wallBot}"
+          stroke="${SEC}" stroke-width="6" stroke-linecap="round"></line>
+        <line x1="${right}" y1="${wallTop}" x2="${right}" y2="${wallBot}"
+          stroke="${SEC}" stroke-width="6" stroke-linecap="round"></line>
+
+        <text x="${left}" y="55" fill="${SEC}" font-size="14" text-anchor="middle">W1</text>
+        <text x="${right}" y="55" fill="${SEC}" font-size="14" text-anchor="middle">W2</text>
+
+        ${lightsSvg}
+
+        ${dimLine({ x1: left, x2: right, y: 80, color: SEC, label: lLabel, value: lValue, labelY: 72 })}
+        ${N >= 1 ? dimLine({ x1: left, x2: lightXs[0], y: 190, color: PRI, label: oLabel, value: oValue, labelY: 212 }) : ""}
+        ${N >= 2 ? dimLine({ x1: lightXs[0], x2: lightXs[1], y: 30, color: PRI, label: sLabel, value: sValue, labelY: 22 }) : ""}
+
+        <text x="${vbW / 2}" y="210" fill="${SEC}" font-size="12" text-anchor="middle">
+          Wall Offset = L/(2N) • Spacing = L/N
+        </text>
+      </svg>
+    `;
+
+    diagramEl.innerHTML = svg;
+  }
+
+  function render() {
+    const errorEl = document.getElementById("error");
+    const resultsBlock = document.getElementById("resultsBlock");
+
+    const results = computeResults();
+    renderDiagram(results);
+
+    if (!results.ok) {
+      errorEl.style.display = "block";
+      errorEl.textContent = results.message;
+      resultsBlock.style.display = "none";
+      window.__copyText = "";
+      return;
+    }
+
+    // Update meta
+    solveSourceEl.textContent = lastEdited;
+    updatedAtEl.textContent = nowTimeStr();
+
+    const { N, spacing, wallOffset, positions, fractionDenom } = results;
+
+    errorEl.style.display = "none";
+    resultsBlock.style.display = "block";
+
+    document.getElementById("wallOffsetFmt").textContent = inchesToFeetInches(wallOffset, fractionDenom);
+    document.getElementById("wallOffsetIn").textContent = wallOffset.toFixed(3) + " in";
+
+    document.getElementById("spacingFmt").textContent = inchesToFeetInches(spacing, fractionDenom);
+    document.getElementById("spacingIn").textContent = spacing.toFixed(3) + " in";
+
+    const list = document.getElementById("positionsList");
+    list.innerHTML = "";
+    positions.forEach((p, idx) => {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `<div>Light ${idx + 1}</div><div class="mono">${inchesToFeetInches(p, fractionDenom)}</div>`;
+      list.appendChild(row);
+    });
+
+    const lines = [
+      `Lights: ${N}`,
+      `Wall offset: ${inchesToFeetInches(wallOffset, fractionDenom)} (${wallOffset.toFixed(3)} in)`,
+      `Spacing (light-to-light): ${inchesToFeetInches(spacing, fractionDenom)} (${spacing.toFixed(3)} in)`,
+      "Positions from Wall 1:",
+      ...positions.map((p, idx) => `  Light ${idx + 1}: ${inchesToFeetInches(p, fractionDenom)} (${p.toFixed(3)} in)`),
+    ];
+    window.__copyText = lines.join("\n");
+  }
+
+  document.getElementById("copyBtn").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(window.__copyText || "");
+      const btn = document.getElementById("copyBtn");
+      const old = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = old), 1200);
+    } catch {
+      alert("Copy failed. You can manually copy from the screen.");
+    }
+  });
+
+  lengthEl.addEventListener("input", () => { lastEdited = "Length"; render(); });
+  nEl.addEventListener("input", () => { lastEdited = "Number of lights"; render(); });
+  denomEl.addEventListener("input", () => { lastEdited = "Rounding denominator"; render(); });
+
+  window.addEventListener("DOMContentLoaded", () => {
+    lastEdited = "—";
+    render();
+  });
+</script>
+</body>
+</html>
