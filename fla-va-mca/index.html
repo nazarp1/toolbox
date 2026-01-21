@@ -370,7 +370,7 @@
     if (nearAny(V, [120, 277], 0.03)) {
       return {
         level: "bad",
-        message: `3Ø with ${V}V looks like a line-to-neutral value. This calculator assumes 3Ø voltage is line-to-line (common: 208, 240, 480, 600).`,
+        message: `Double-check. 3Ø with ${V}V looks like a line-to-neutral value. 3Ø voltage is assumed line-to-line (common: 208, 240, 480, 600).`,
         flagVoltage: true,
         flagPhase: true
       };
@@ -379,7 +379,7 @@
     if (V < 180 || V > 700) {
       return {
         level: "warn",
-        message: `Voltage ${V}V is outside typical 3Ø line-to-line ranges (common: 208, 240, 480, 600). Double-check phase and voltage reference.`,
+        message: `Double-check. Voltage ${V}V is outside typical 3Ø line-to-line ranges (common: 208, 240, 480, 600).`,
         flagVoltage: true,
         flagPhase: false
       };
@@ -568,7 +568,7 @@
         phaseEl.classList.add("invalid");
         if (phaseHelp) {
           phaseHelp.className = "helpDanger";
-          phaseHelp.textContent = "Check phase selection (1Ø vs 3Ø).";
+          phaseHelp.textContent = "Double check phase selection (1Ø vs 3Ø).";
         }
       } else {
         phaseEl.classList.remove("invalid");
@@ -762,6 +762,7 @@
 </script>
 </body>
 </html>
+
 
 
 
