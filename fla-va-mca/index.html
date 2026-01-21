@@ -105,11 +105,6 @@
           <input id="factor" type="number" step="0.001" value="1.25" />
           <div class="help" id="factorHelp">Used for MCA ↔ FLA (MCA = Factor × FLA).</div>
         </div>
-
-        <div class="field">
-          <label>&nbsp;</label>
-          <div class="help">Tip: enter VA+V+phase, or MCA+factor, or kW+PF.</div>
-        </div>
       </div>
 
       <div id="statusOk" class="ok" style="display:none;"></div>
@@ -121,7 +116,6 @@
 
       <div class="miniMeta">
         <span class="pill"><strong>Solved from:</strong> <span id="solveSource">—</span></span>
-        <span class="pill"><strong>Updated:</strong> <span id="updatedAt">—</span></span>
       </div>
 
       <div class="resultGrid3">
@@ -274,7 +268,6 @@
   const factorHelp = el("factorHelp");
 
   const solveSourceEl = el("solveSource");
-  const updatedAtEl = el("updatedAt");
 
   const outFLA = el("outFLA");
   const outVA = el("outVA");
@@ -581,9 +574,8 @@
     outVAMeta.textContent  = Number.isFinite(VA) ? "VA (kVA field auto-updates)" : "Provide FLA + V + phase OR enter VA/kVA OR kW+PF";
     outMCAMeta.textContent = Number.isFinite(MCA) ? "A (Factor × FLA)" : "Provide FLA + factor OR enter MCA";
 
-    // Solved-from + updated UI
+    // Solved-from 
     solveSourceEl.textContent = labelFor(lastEdited);
-    updatedAtEl.textContent = nowTimeStr();
 
     // Status line (no voltage reference anymore)
     const status = [];
@@ -661,4 +653,5 @@
 </script>
 </body>
 </html>
+
 
