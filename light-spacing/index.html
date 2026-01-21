@@ -69,7 +69,6 @@
       <div id="resultsBlock" style="display:none;">
         <div class="miniMeta">
           <span class="pill"><strong>Solved from:</strong> <span id="solveSource">—</span></span>
-          <span class="pill"><strong>Updated:</strong> <span id="updatedAt">—</span></span>
         </div>
 
         <div class="resultGrid">
@@ -233,7 +232,6 @@
   const nEl = document.getElementById("n");
   const denomEl = document.getElementById("denom");
   const solveSourceEl = document.getElementById("solveSource");
-  const updatedAtEl = document.getElementById("updatedAt");
 
   let lastEdited = "—";
 
@@ -384,7 +382,6 @@
 
     // Update meta
     solveSourceEl.textContent = lastEdited;
-    updatedAtEl.textContent = nowTimeStr();
 
     const { N, spacing, wallOffset, positions, fractionDenom } = results;
 
@@ -439,3 +436,4 @@
 </script>
 </body>
 </html>
+
