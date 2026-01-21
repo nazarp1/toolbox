@@ -63,15 +63,15 @@
         </div>
 
         <div class="field">
-          <label for="kva">Load kVA</label>
-          <input id="kva" type="number" step="0.001" placeholder="e.g. 12" />
-          <div class="help">kVA = VA / 1000 (bidirectional).</div>
-        </div>
-
-        <div class="field">
           <label for="kw">Load kW</label>
           <input id="kw" type="number" step="0.001" placeholder="e.g. 10" />
           <div class="help">Real power. If PF is provided, kW can compute VA.</div>
+        </div>
+
+        <div class="field">
+          <label for="fla">FLA (A)</label>
+          <input id="fla" type="number" step="0.001" placeholder="e.g. 33.3" />
+          <div class="help">Full load current.</div>
         </div>
       </div>
 
@@ -89,19 +89,13 @@
         </div>
 
         <div class="field">
-          <label for="fla">FLA (A)</label>
-          <input id="fla" type="number" step="0.001" placeholder="e.g. 33.3" />
-          <div class="help">Full load current.</div>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="field">
           <label for="mca">MCA (A)</label>
           <input id="mca" type="number" step="0.001" placeholder="e.g. 41.6" />
           <div class="help">Minimum Circuit Ampacity.</div>
         </div>
+      </div>
 
+      <div class="grid">
         <div class="field">
           <label for="factor">MCA Factor</label>
           <input id="factor" type="number" step="0.001" value="1.25" />
@@ -161,7 +155,6 @@
         <li><span class="mono">V</span> = voltage (V)</li>
         <li><span class="mono">I</span> = current (A) (FLA in this tool)</li>
         <li><span class="mono">VA</span> = apparent power (volt-amps)</li>
-        <li><span class="mono">kVA</span> = kilovolt-amps</li>
         <li><span class="mono">kW</span> = real power (kilowatts)</li>
         <li><span class="mono">PF</span> = power factor (0–1)</li>
         <li><span class="mono">eff</span> = efficiency (0–1). If blank, code assumes <span class="mono">eff = 1</span></li>
@@ -170,14 +163,6 @@
       </ul>
 
       <hr />
-
-      <div class="sectionTitle">VA ↔ kVA conversion</div>
-      <p class="mono">
-        kVA =
-        <span class="frac"><span class="top">VA</span><span class="bar"></span><span class="bottom">1000</span></span>
-        &nbsp;&nbsp;&nbsp;and&nbsp;&nbsp;&nbsp;
-        VA = 1000 × kVA
-      </p>
 
       <div class="sectionTitle">VA ↔ FLA (Current) using phase</div>
 
@@ -259,7 +244,6 @@
   const voltageEl = el("voltage");
   const phaseEl = el("phase");
   const vaEl = el("va");
-  const kvaEl = el("kva");
   const kwEl = el("kw");
   const pfEl = el("pf");
   const effEl = el("eff");
@@ -323,19 +307,16 @@
   function sqrt3() { return 1.7320508075688772; }
 
   function nearAny(value, candidates, tolPct = 0.03) {
-    // tolPct = ±3% default
     return candidates.some(v => Math.abs(value - v) <= v * tolPct);
   }
 
   function validatePhaseVoltage(V, phase) {
-    // Returns: { level: "ok"|"warn"|"bad", message: string, flagVoltage: bool, flagPhase: bool }
-
     if (!Number.isFinite(V) || V <= 0) {
       return { level: "ok", message: "", flagVoltage: false, flagPhase: false };
     }
 
-    const V1_typ = [120, 208, 240, 277, 480];         // common 1Ø
-    const V3_typ = [208, 240, 400, 480, 600];         // common 3Ø (LL)
+    const V1_typ = [120, 208, 240, 277, 480];
+    const V3_typ = [208, 240, 400, 480, 600];
 
     if (phase === 1) {
       if (V < 90 || V > 700) {
@@ -350,7 +331,7 @@
       if (!nearAny(V, V1_typ, 0.03)) {
         return {
           level: "warn",
-          message: `1Ø at ${V}V is unusual. Common 1Ø values are 120, 208, 240, 277, 480.`,
+          message: `1Ø at ${V}V is unusual. Common 1Ø values are 120, 208, 240, 277, 480. If this is a 3Ø system, confirm whether you meant line-to-line.`,
           flagVoltage: true,
           flagPhase: false
         };
@@ -363,7 +344,7 @@
     if (nearAny(V, [120, 277], 0.03)) {
       return {
         level: "bad",
-        message: `3Ø with ${V}V looks like a line-to-neutral value. 3Ø voltage is assumed line-to-line (common: 208, 240, 480, 600).`,
+        message: `Double-check. 3Ø with ${V}V looks like a line-to-neutral value. 3Ø voltage is assumed line-to-line (common: 208, 240, 480, 600).`,
         flagVoltage: true,
         flagPhase: true
       };
@@ -432,8 +413,6 @@
     if (!Number.isFinite(MCA) || !Number.isFinite(factor) || factor === 0) return NaN;
     return MCA / factor;
   }
-  function vaFromKVA(kva) { return Number.isFinite(kva) ? kva * 1000 : NaN; }
-  function kvaFromVA(va) { return Number.isFinite(va) ? va / 1000 : NaN; }
 
   function vaFromKW(kW, pf, eff) {
     if (!Number.isFinite(kW)) return NaN;
@@ -459,7 +438,6 @@
       V: num(voltageEl.value),
       phase: Number(phaseEl.value),
       VA: num(vaEl.value),
-      kVA: num(kvaEl.value),
       kW: num(kwEl.value),
       PF: num(pfEl.value),
       eff: num(effEl.value),
@@ -474,7 +452,6 @@
       voltage: "Voltage",
       phase: "Phase",
       va: "VA",
-      kva: "kVA",
       kw: "kW",
       pf: "PF",
       eff: "Efficiency",
@@ -572,38 +549,29 @@
     setError("");
     setOk("");
 
-    let { V, phase, VA, kVA, kW, PF, eff, FLA, MCA, factor } = readInputs();
+    let { V, phase, VA, kW, PF, eff, FLA, MCA, factor } = readInputs();
     const hasFactor = Number.isFinite(factor) && factor > 0;
 
     // Apply validation/UI hints (no math behavior changes)
-    applyValidation({ V, phase, VA, kVA, kW, PF, eff, FLA, MCA, factor });
+    applyValidation({ V, phase, VA, kW, PF, eff, FLA, MCA, factor });
 
-    if (lastEdited === "kva" && Number.isFinite(kVA)) {
-      VA = vaFromKVA(kVA);
-      showBadge("VA");
-    } else if (lastEdited === "va" && Number.isFinite(VA)) {
-      kVA = kvaFromVA(VA);
-    } else {
-      if (Number.isFinite(VA) && !Number.isFinite(kVA)) kVA = kvaFromVA(VA);
-      if (Number.isFinite(kVA) && !Number.isFinite(VA)) VA = vaFromKVA(kVA);
-    }
-
+    // If user edits kW, compute VA (requires PF; eff optional)
     if (lastEdited === "kw") {
       const derivedVA = vaFromKW(kW, PF, eff);
       if (Number.isFinite(derivedVA)) {
         VA = derivedVA;
         showBadge("VA");
-        kVA = kvaFromVA(VA);
       }
     }
 
+    // If user edits PF or eff, try to resolve VA from kW (if kW exists),
+    // or resolve kW from VA (if VA exists)
     if (lastEdited === "pf" || lastEdited === "eff") {
       if (Number.isFinite(kW)) {
         const derivedVA = vaFromKW(kW, PF, eff);
         if (Number.isFinite(derivedVA)) {
           VA = derivedVA;
           showBadge("VA");
-          kVA = kvaFromVA(VA);
         }
       } else if (Number.isFinite(VA)) {
         const derivedKW = kwFromVA(VA, PF, eff);
@@ -613,7 +581,8 @@
       }
     }
 
-    if (["va","kva","kw","pf","eff"].includes(lastEdited)) {
+    // If VA changes (directly or via kW), solve FLA and/or voltage if possible
+    if (["va","kw","pf","eff"].includes(lastEdited)) {
       if (Number.isFinite(VA) && Number.isFinite(V) && V > 0) {
         FLA = flaFromVA(VA, V, phase); showBadge("FLA");
       } else if (Number.isFinite(VA) && Number.isFinite(FLA)) {
@@ -623,9 +592,10 @@
       if (Number.isFinite(FLA) && hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
     }
 
+    // If FLA edited, solve VA and/or voltage if possible
     if (lastEdited === "fla") {
       if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) {
-        VA = vaFromFLA(FLA, V, phase); showBadge("VA"); kVA = kvaFromVA(VA);
+        VA = vaFromFLA(FLA, V, phase); showBadge("VA");
       } else if (Number.isFinite(FLA) && Number.isFinite(VA)) {
         V = solveVFromVAFLA(VA, FLA, phase);
         if (Number.isFinite(V)) voltageEl.value = fmt(V, 2);
@@ -633,47 +603,54 @@
       if (Number.isFinite(FLA) && hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
     }
 
+    // If MCA edited, compute FLA then VA if voltage exists
     if (lastEdited === "mca") {
       if (Number.isFinite(MCA) && hasFactor) { FLA = flaFromMCA(MCA, factor); showBadge("FLA"); }
-      if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) { VA = vaFromFLA(FLA, V, phase); showBadge("VA"); kVA = kvaFromVA(VA); }
+      if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) { VA = vaFromFLA(FLA, V, phase); showBadge("VA"); }
     }
 
+    // If voltage or phase changed, recompute dependent values
     if (lastEdited === "voltage" || lastEdited === "phase") {
       if (Number.isFinite(VA) && Number.isFinite(V) && V > 0) {
         FLA = flaFromVA(VA, V, phase); showBadge("FLA");
         if (hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
       } else if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) {
-        VA = vaFromFLA(FLA, V, phase); showBadge("VA"); kVA = kvaFromVA(VA);
+        VA = vaFromFLA(FLA, V, phase); showBadge("VA");
         if (hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
       }
     }
 
+    // If factor edited, update MCA/FLA relationship then VA if possible
     if (lastEdited === "factor") {
       if (Number.isFinite(MCA) && hasFactor) { FLA = flaFromMCA(MCA, factor); showBadge("FLA"); }
       else if (Number.isFinite(FLA) && hasFactor) { MCA = mcaFromFLA(FLA, factor); showBadge("MCA"); }
-      if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) { VA = vaFromFLA(FLA, V, phase); showBadge("VA"); kVA = kvaFromVA(VA); }
+      if (Number.isFinite(FLA) && Number.isFinite(V) && V > 0) { VA = vaFromFLA(FLA, V, phase); showBadge("VA"); }
     }
 
+    // Write solved values back (respect lastEdited)
     if (Number.isFinite(VA) && lastEdited !== "va") vaEl.value = fmt(VA, 1);
-    if (Number.isFinite(kVA) && lastEdited !== "kva") kvaEl.value = fmt(kVA, 3);
     if (Number.isFinite(FLA) && lastEdited !== "fla") flaEl.value = fmt(FLA, 3);
     if (Number.isFinite(MCA) && lastEdited !== "mca") mcaEl.value = fmt(MCA, 3);
 
+    // If VA and PF are known, compute kW (unless user is actively editing kW)
     if (Number.isFinite(VA) && Number.isFinite(PF) && PF > 0 && lastEdited !== "kw") {
       const derivedKW = kwFromVA(VA, PF, eff);
       if (Number.isFinite(derivedKW)) kwEl.value = fmt(derivedKW, 3);
     }
 
+    // Output cards
     outFLA.textContent = Number.isFinite(FLA) ? fmt(FLA, 3) : "—";
     outVA.textContent  = Number.isFinite(VA) ? fmt(VA, 1) : "—";
     outMCA.textContent = Number.isFinite(MCA) ? fmt(MCA, 3) : "—";
 
     outFLAMeta.textContent = Number.isFinite(FLA) ? "A" : "Provide VA + V + phase OR MCA + factor OR kW + PF";
-    outVAMeta.textContent  = Number.isFinite(VA) ? "VA (kVA field auto-updates)" : "Provide FLA + V + phase OR enter VA/kVA OR kW+PF";
+    outVAMeta.textContent  = Number.isFinite(VA) ? "VA" : "Provide FLA + V + phase OR enter VA OR kW + PF";
     outMCAMeta.textContent = Number.isFinite(MCA) ? "A (Factor × FLA)" : "Provide FLA + factor OR enter MCA";
 
+    // Solved-from
     solveSourceEl.textContent = labelFor(lastEdited);
 
+    // Status line (0 treated as missing)
     const status = [];
     if (hasData(VA)) status.push("VA known");
     if (hasData(FLA)) status.push("FLA known");
@@ -682,12 +659,12 @@
     if (hasData(kW) && !(Number.isFinite(PF) && PF > 0)) status.push("PF needed for kW solving");
     setOk(status.join(" • "));
 
+    // Copy text
     window.__copyText = [
       `FLA / VA / kW / MCA Calculator`,
       `Voltage: ${Number.isFinite(V) ? fmt(V, 2) : "—"} V`,
       `Phase: ${phase === 1 ? "1Ø" : "3Ø"}`,
       `VA: ${Number.isFinite(VA) ? fmt(VA, 1) : "—"} VA`,
-      `kVA: ${Number.isFinite(VA) ? fmt(kvaFromVA(VA), 3) : "—"} kVA`,
       `kW: ${Number.isFinite(kW) ? fmt(kW, 3) : (Number.isFinite(VA) && Number.isFinite(PF) && PF > 0 ? fmt(kwFromVA(VA, PF, eff), 3) : "—")} kW`,
       `PF: ${Number.isFinite(PF) ? fmt(PF, 3) : "—"}`,
       `Eff: ${Number.isFinite(eff) ? fmt(eff, 3) : "—"}`,
@@ -707,7 +684,6 @@
   voltageEl.addEventListener("input", () => setLast("voltage"));
   phaseEl.addEventListener("change", () => setLast("phase"));
   vaEl.addEventListener("input", () => setLast("va"));
-  kvaEl.addEventListener("input", () => setLast("kva"));
   kwEl.addEventListener("input", () => setLast("kw"));
   pfEl.addEventListener("input", () => setLast("pf"));
   effEl.addEventListener("input", () => setLast("eff"));
@@ -718,7 +694,6 @@
   el("resetBtn").addEventListener("click", () => {
     voltageEl.value = "";
     vaEl.value = "";
-    kvaEl.value = "";
     kwEl.value = "";
     pfEl.value = "";
     effEl.value = "";
@@ -749,4 +724,3 @@
 </script>
 </body>
 </html>
-
