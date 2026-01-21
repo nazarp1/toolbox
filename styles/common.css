@@ -1,6 +1,6 @@
-/* ==================================== */
+/* ===================
    THEME TOKENS
-/* ==================================== */
+=================== */
 
 :root{
   /* Base (DARK MODE) */
@@ -76,10 +76,11 @@
     --diag-label: rgba(17,24,39,.65);
   }
 }
+}
 
-/* ==================================== */
+/* =======
    BASE
-/* ==================================== */
+======= */
 
 *{box-sizing:border-box}
 html{ overflow-y: scroll; }
@@ -100,9 +101,9 @@ body{
   gap:18px;
 }
 
-/* ==================================== */
+/* ======
    NAVBAR
-/* ==================================== */
+====== */
 
 .nav{
   display:flex;
@@ -171,9 +172,7 @@ body{
   text-decoration:none;
 }
 
-/* ==================================== */
-   TYPOGRAPHY
-/* ==================================== */
+/* ========== TYPOGRAPHY ============ */
 
 header{ padding:8px 2px; }
 
@@ -203,9 +202,7 @@ h2{
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* ==================================== */
-   CARDS / FORMS
-/* ==================================== */
+/* ================ CARDS / FORMS ===================== */
 
 .card{
   background:var(--surface-1);
@@ -373,9 +370,7 @@ button:hover{
   font-size:14px;
 }
 
-/* ==================================== */
-   HOME TILES
-/* ==================================== */
+/* ============ HOME TILES ================ */
 
 .gridHome{
   display:grid;
@@ -451,9 +446,7 @@ button:hover{
   line-height:1.45;
 }
 
-/* ==================================== */
-   LIGHT SPACING DIAGRAM
-/* ==================================== */
+/* ================== LIGHT SPACING DIAGRAM ====================== */
 
 .diagramWrap{
   margin-top:12px;
@@ -473,9 +466,7 @@ button:hover{
   display:block;
 }
 
-/* ==================================== */
-   CALC BADGES
-/* ==================================== */
+/* ========== CALC BADGES ========== */
 
 .computedBadge{
   display:inline-block;
@@ -488,9 +479,7 @@ button:hover{
   margin-left:8px;
 }
 
-/* ==================================== */
-   COLLAPSIBLE ISLAND
-/* ==================================== */
+/* ================ COLLAPSIBLE ISLAND ======================= */
 
 details.island{
   border:1px solid var(--border);
@@ -517,9 +506,7 @@ details.island > summary::after{
 details.island[open] > summary::after{ transform: rotate(180deg); }
 details.island[open] > summary{ margin-bottom:10px; }
 
-/* ==================================== */
-   RESPONSIVE
-/* ==================================== */
+/* =============== RESPONSIVE =================== */
 
 @media (max-width: 900px){
   .gridHome{grid-template-columns: repeat(2, minmax(0, 1fr));}
@@ -533,5 +520,6 @@ details.island[open] > summary{ margin-bottom:10px; }
   body{padding:18px;}
   .gridHome{grid-template-columns: 1fr;}
 }
+
 
 
