@@ -41,10 +41,10 @@
   --tag-border:rgba(255,255,255,.14);
 
   /* Diagram tokens */
-  --diag-primary: rgba(244,245,247,.85);
-  --diag-secondary: rgba(244,245,247,.35);
-  --diag-light: rgba(244,245,247,.92);
-  --diag-label: rgba(244,245,247,.70);
+  --diag-primary: #e5e7eb;   /* main dimension lines */
+  --diag-secondary: #9ca3af; /* baseline/walls/secondary */
+  --diag-light: #f9fafb;     /* light circles */
+  --diag-label: #cbd5e1;     /* labels */
 }
 
 /* LIGHT THEME */
@@ -79,10 +79,10 @@
     --tag-bg:rgba(17,24,39,.04);
     --tag-border:rgba(17,24,39,.12);
 
-    --diag-primary: rgba(17,24,39,.85);
-    --diag-secondary: rgba(17,24,39,.35);
-    --diag-light: rgba(17,24,39,.10);
-    --diag-label: rgba(17,24,39,.65);
+    --diag-primary: #111827;
+    --diag-secondary: #6b7280;
+    --diag-light: #e5e7eb;
+    --diag-label: #374151;
   }
 }
 
@@ -537,3 +537,4 @@ details.island[open] > summary{ margin-bottom:10px; }
   body{padding:18px;}
   .gridHome{grid-template-columns: 1fr;}
 }
+
