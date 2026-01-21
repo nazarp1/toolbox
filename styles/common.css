@@ -494,7 +494,7 @@ button:hover{
 
 details.island{
   border:1px solid var(--border);
-  background: var(--surface-2);
+  background: var(--surface-1);
   border-radius: var(--radius);
   padding: 10px 12px;
 }
@@ -533,4 +533,5 @@ details.island[open] > summary{ margin-bottom:10px; }
   body{padding:18px;}
   .gridHome{grid-template-columns: 1fr;}
 }
+
 
