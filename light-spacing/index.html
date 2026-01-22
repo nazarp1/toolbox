@@ -351,7 +351,7 @@
 
         ${lightsSvg}
 
-        ${dimLine({ x1: left, x2: right, y: 80, color: SEC, label: lLabel, value: lValue, labelY: 72 })}
+        ${dimLine({ x1: left, x2: right, y: 80, color: SEC, label: lLabel, value: lValue, labelY: 72, valueColor: SEC })}
         ${N >= 1 ? dimLine({ x1: left, x2: lightXs[0], y: 190, color: PRI, label: oLabel, value: oValue, labelY: 212 }) : ""}
         ${N >= 2 ? dimLine({ x1: lightXs[0], x2: lightXs[1], y: 30, color: PRI, label: sLabel, value: sValue, labelY: 22 }) : ""}
         
@@ -432,6 +432,7 @@
 </script>
 </body>
 </html>
+
 
 
 
