@@ -41,10 +41,11 @@
   --tag-border:rgba(255,255,255,.14);
 
   /* Diagram tokens */
-  --diag-primary: #e5e7eb;   /* main dimension lines */
-  --diag-secondary: #9ca3af; /* baseline/walls/secondary */
-  --diag-light: #f9fafb;     /* light circles */
-  --diag-label: #cbd5e1;     /* labels */
+   --diag-primary: #e5e7eb;   /* main dimension lines */
+   --diag-secondary: #9ca3af; /* baseline/walls/secondary */
+   --diag-light: #f9fafb;     /* light circles */
+   --diag-label: #cbd5e1;     /* labels */
+   --diag-ref: var(--muted);
 }
 
 /* LIGHT THEME */
@@ -537,4 +538,5 @@ details.island[open] > summary{ margin-bottom:10px; }
   body{padding:18px;}
   .gridHome{grid-template-columns: 1fr;}
 }
+
 
