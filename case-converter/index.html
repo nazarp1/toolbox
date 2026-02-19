@@ -23,7 +23,7 @@
     <header>
       <h1>Case Converter</h1>
       <div class="subhead">
-        Paste text → convert case → copy. Designed for quick clipboard workflows.
+        Paste text → convert case → copy. 
       </div>
     </header>
 
@@ -42,7 +42,7 @@
             <option value="snake">snake_case</option>
             <option value="kebab">kebab-case</option>
           </select>
-          <div class="help">Pick a conversion type. Output updates as you type.</div>
+          <div class="help">Pick a conversion type.</div>
         </div>
 
         <div class="field">
@@ -53,7 +53,7 @@
             <option value="collapse" selected>Collapse extra spaces</option>
             <option value="lines">Trim each line</option>
           </select>
-          <div class="help">Optional cleanup before converting.</div>
+          <div class="help">Optional cleanup.</div>
         </div>
 
         <div class="field">
@@ -79,9 +79,7 @@
       </div>
 
       <div class="actions">
-        <button id="clearBtn" type="button">Clear</button>
         <button id="copyBtn" type="button">Copy output</button>
-        <div class="help" id="statusText">Ready.</div>
       </div>
     </section>
 
@@ -221,22 +219,6 @@
     }
   });
 
-  el("clearBtn").addEventListener("click", () => {
-    inputEl.value = "";
-    outputEl.value = "";
-    render();
-    setStatus("Cleared.");
-  });
-
-  el("swapBtn").addEventListener("click", () => {
-    const a = inputEl.value || "";
-    const b = outputEl.value || "";
-    inputEl.value = b;
-    outputEl.value = a;
-    render();
-    setStatus("Swapped input/output.");
-  });
-
   inputEl.addEventListener("input", render);
   modeEl.addEventListener("change", render);
   trimEl.addEventListener("change", render);
@@ -247,6 +229,7 @@
 </script>
 </body>
 </html>
+
 
 
 
