@@ -5,70 +5,250 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Case Converter</title>
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="stylesheet" href="./styles/common.css">
+  <link rel="stylesheet" href="../styles/common.css">
 </head>
 
 <body>
   <div class="container">
 
     <nav class="nav">
-      <a href="./" aria-current="page">Nazar's Toolbox</a>
+      <a href="../">Nazar's Toolbox</a>
       <div class="navlinks">
-        <a href="./light-spacing/">Light Spacing</a>
-        <a href="./fla-va-mca/">FLA / VA / MCA</a>
-        <a href="./case-converter/">Case Converter</a>
+        <a href="../light-spacing/">Light Spacing</a>
+        <a href="../fla-va-mca/">FLA / VA / MCA</a>
+        <a href="../case-converter/" aria-current="page">Case Converter</a>
       </div>
     </nav>
 
     <header>
-      <h1>Nazar Toolbox</h1>
-      <p class="sub">
-        A collection of engineering calculators and layout helpers I created to help me speed up my design work and to better understand the math and practice some coding in my free time.
-      </p>
+      <h1>Case Converter</h1>
+      <div class="subhead">
+        Paste text → convert case → copy. Designed for quick clipboard workflows.
+      </div>
     </header>
 
-    <div class="gridHome">
-      <a class="cardLink" href="./light-spacing/">
-        <div class="titleRow">
-          <h2 class="toolTitle">Light Spacing Calculator</h2>
-          <span class="tag">Layout</span>
-        </div>
-        <p class="desc">
-          Evenly distributes lights with wall-to-first-light = ½ spacing.
-          Outputs wall offsets, spacing, and positions.
-        </p>
-      </a>
+    <section class="card">
+      <h2>Convert</h2>
 
-      <a class="cardLink" href="./fla-va-mca/">
-        <div class="titleRow">
-          <h2 class="toolTitle">FLA / VA / MCA Calculator</h2>
-          <span class="tag">Electrical</span>
+      <div class="grid">
+        <div class="field">
+          <label for="mode">Conversion</label>
+          <select id="mode">
+            <option value="upper">UPPERCASE</option>
+            <option value="lower">lowercase</option>
+            <option value="title">Title Case</option>
+            <option value="sentence">Sentence case</option>
+            <option value="toggle">tOGGLE cASE</option>
+            <option value="snake">snake_case</option>
+            <option value="kebab">kebab-case</option>
+          </select>
+          <div class="help">Pick a conversion type. Output updates as you type.</div>
         </div>
-        <p class="desc">
-          Bidirectional solver for VA, kW, FLA, and MCA. Enter enough fields and it auto-calculates the rest.
-        </p>
-      </a>
 
-      <a class="cardLink" href="./case-converter/">
-        <div class="titleRow">
-          <h2 class="toolTitle">Case Converter</h2>
-          <span class="tag">Text</span>
+        <div class="field">
+          <label for="trim">Whitespace</label>
+          <select id="trim">
+            <option value="none">Keep as-is</option>
+            <option value="trim">Trim ends</option>
+            <option value="collapse" selected>Collapse extra spaces</option>
+            <option value="lines">Trim each line</option>
+          </select>
+          <div class="help">Optional cleanup before converting.</div>
         </div>
-        <p class="desc">
-          Convert text to UPPERCASE, lowercase, Title Case, Sentence case, and more. Includes quick copy.
-        </p>
-      </a>
 
-      <div class="cardDisabled">
-        <div class="titleRow">
-          <h2 class="toolTitle">Future</h2>
-          <span class="tag">Future</span>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button id="swapBtn" type="button">Swap</button>
+          <div class="help">Swap input/output (useful for chained edits).</div>
         </div>
-        <p class="desc">Planned:</p>
       </div>
-    </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="inputText">Input</label>
+          <textarea id="inputText" placeholder="Paste text here..."></textarea>
+          <div class="help">Tip: The output updates live; you can still use the buttons below for copy/clear.</div>
+        </div>
+
+        <div class="field">
+          <label for="outputText">Output</label>
+          <textarea id="outputText" readonly placeholder="Converted text..."></textarea>
+          <div class="help">Readonly to avoid accidental edits (use Swap if you want to keep editing).</div>
+        </div>
+      </div>
+
+      <div class="miniMeta">
+        <span class="pill"><strong>Chars:</strong> <span id="charCount">0</span></span>
+        <span class="pill"><strong>Words:</strong> <span id="wordCount">0</span></span>
+        <span class="pill"><strong>Lines:</strong> <span id="lineCount">0</span></span>
+      </div>
+
+      <div class="actions">
+        <button id="copyBtn" type="button">Copy output</button>
+        <button id="clearBtn" type="button">Clear</button>
+        <div class="help" id="statusText">Ready.</div>
+      </div>
+    </section>
+
+    <details class="island">
+      <summary>Notes</summary>
+
+      <p class="help" style="margin-top:10px;">
+        <strong>Title Case</strong>: capitalizes each word. <br>
+        <strong>Sentence case</strong>: capitalizes the first letter after a period/exclamation/question mark. <br>
+        <strong>snake_case / kebab-case</strong>: converts to tokens and joins with underscores or hyphens.
+      </p>
+
+      <p class="help" style="margin-top:10px;">
+        This tool runs fully in the browser and does not send your text anywhere.
+      </p>
+    </details>
 
   </div>
-</body>
 
+<script>
+  const el = (id) => document.getElementById(id);
+
+  const modeEl = el("mode");
+  const trimEl = el("trim");
+  const inputEl = el("inputText");
+  const outputEl = el("outputText");
+
+  const charCountEl = el("charCount");
+  const wordCountEl = el("wordCount");
+  const lineCountEl = el("lineCount");
+  const statusEl = el("statusText");
+
+  function setStatus(msg) {
+    statusEl.textContent = msg || "Ready.";
+  }
+
+  function normalizeWhitespace(s, mode) {
+    if (!s) return "";
+    if (mode === "trim") return s.trim();
+    if (mode === "collapse") {
+      // Collapse runs of spaces/tabs, keep newlines.
+      return s
+        .split("\n")
+        .map(line => line.replace(/[ \t]+/g, " ").trimEnd())
+        .join("\n")
+        .trim();
+    }
+    if (mode === "lines") {
+      return s
+        .split("\n")
+        .map(line => line.trim())
+        .join("\n")
+        .trim();
+    }
+    return s;
+  }
+
+  function toTitleCase(s) {
+    // Simple title case: capitalize first letter of each word, lower the rest.
+    return s.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  }
+
+  function toSentenceCase(s) {
+    const lower = s.toLowerCase();
+    // Capitalize first non-space char and first letter after . ! ?
+    return lower.replace(/(^\s*[a-z])|([.!?]\s+([a-z]))/g, (m, a, b, c) => {
+      if (a) return a.toUpperCase();
+      if (c) return b.replace(c, c.toUpperCase());
+      return m;
+    });
+  }
+
+  function toggleCase(s) {
+    let out = "";
+    for (const ch of s) {
+      const up = ch.toUpperCase();
+      const lo = ch.toLowerCase();
+      out += (ch === up) ? lo : up;
+    }
+    return out;
+  }
+
+  function slugTokens(s) {
+    // Normalize to "words" and numbers, treat everything else as separators.
+    return normalizeWhitespace(s, "collapse")
+      .toLowerCase()
+      .replace(/['"]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+  }
+
+  function convert(s, mode) {
+    if (!s) return "";
+    if (mode === "upper") return s.toUpperCase();
+    if (mode === "lower") return s.toLowerCase();
+    if (mode === "title") return toTitleCase(s);
+    if (mode === "sentence") return toSentenceCase(s);
+    if (mode === "toggle") return toggleCase(s);
+    if (mode === "snake") return slugTokens(s).join("_");
+    if (mode === "kebab") return slugTokens(s).join("-");
+    return s;
+  }
+
+  function updateCounts(raw) {
+    charCountEl.textContent = String(raw.length);
+
+    const words = raw.trim() ? raw.trim().split(/\s+/).filter(Boolean).length : 0;
+    wordCountEl.textContent = String(words);
+
+    const lines = raw.length ? raw.split("\n").length : 0;
+    lineCountEl.textContent = String(lines);
+  }
+
+  function render() {
+    const raw = inputEl.value || "";
+    updateCounts(raw);
+
+    const cleaned = normalizeWhitespace(raw, trimEl.value);
+    const out = convert(cleaned, modeEl.value);
+    outputEl.value = out;
+
+    setStatus("Ready.");
+  }
+
+  el("copyBtn").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(outputEl.value || "");
+      setStatus("Copied output to clipboard.");
+      const btn = el("copyBtn");
+      const old = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = old), 1200);
+    } catch {
+      setStatus("Copy failed. Your browser may block clipboard access.");
+    }
+  });
+
+  el("clearBtn").addEventListener("click", () => {
+    inputEl.value = "";
+    outputEl.value = "";
+    render();
+    setStatus("Cleared.");
+  });
+
+  el("swapBtn").addEventListener("click", () => {
+    const a = inputEl.value || "";
+    const b = outputEl.value || "";
+    inputEl.value = b;
+    outputEl.value = a;
+    render();
+    setStatus("Swapped input/output.");
+  });
+
+  inputEl.addEventListener("input", render);
+  modeEl.addEventListener("change", render);
+  trimEl.addEventListener("change", render);
+
+  window.addEventListener("DOMContentLoaded", () => {
+    render();
+  });
+</script>
+</body>
 </html>
