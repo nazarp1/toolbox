@@ -717,11 +717,24 @@ details.island[open] > summary{
 
   .navlinks{
     width:100%;
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .navMenu{
+    width:100%;
+  }
+
+  .navMenu summary{
+    width:100%;
+    justify-content:space-between;
   }
 
   .navDropdown{
-    right:auto;
-    left:0;
+    position:static;
+    margin-top:8px;
+    min-width:unset;
+    width:100%;
   }
 }
 
@@ -733,6 +746,7 @@ details.island[open] > summary{
   .gridHome{
     grid-template-columns:1fr;
   }
+}
 
   .navlinks{
     width:100%;
