@@ -2,37 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nazar's Toolbox</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nazar Toolbox</title>
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="stylesheet" href="./styles/common.css" />
+  <link rel="stylesheet" href="./styles/common.css">
 </head>
 
 <body>
   <div class="container">
-    <nav class="nav" aria-label="Primary">
-      <a class="brand" href="./" aria-current="page">Nazar's Toolbox</a>
 
+    <nav class="nav">
+      <a href="./" aria-current="page">Nazar's Toolbox</a>
       <div class="navlinks">
-        <details class="navMenu">
-          <summary>Calculators</summary>
-          <div class="navDropdown">
-            <a href="./light-spacing/">Light Spacing</a>
-            <a href="./fla-va-mca/">FLA / VA / MCA</a>
-          </div>
-        </details>
-
-        <details class="navMenu">
-          <summary>Utilities</summary>
-          <div class="navDropdown">
-            <a href="./case-converter/">Case Converter</a>
-          </div>
-        </details>
+        <a href="./light-spacing/">Light Spacing</a>
+        <a href="./fla-va-mca/">FLA / VA / MCA</a>
+        <a href="./case-converter/">Case Converter</a>
       </div>
     </nav>
 
     <header>
-      <h1>Nazar's Toolbox</h1>
+      <h1>Nazar Toolbox</h1>
       <p class="sub">
         A collection of engineering calculators and layout helpers I created to help me speed up my design work and to better understand the math and practice some coding in my free time.
       </p>
@@ -78,38 +67,7 @@
         <p class="desc">Planned:</p>
       </div>
     </div>
+
   </div>
-
-  <script>
-    const navMenus = document.querySelectorAll('.navMenu');
-
-    navMenus.forEach((menu) => {
-      menu.addEventListener('toggle', () => {
-        if (!menu.open) return;
-
-        navMenus.forEach((otherMenu) => {
-          if (otherMenu !== menu) {
-            otherMenu.removeAttribute('open');
-          }
-        });
-      });
-    });
-
-    document.addEventListener('click', (event) => {
-      navMenus.forEach((menu) => {
-        if (!menu.contains(event.target)) {
-          menu.removeAttribute('open');
-        }
-      });
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        navMenus.forEach((menu) => {
-          menu.removeAttribute('open');
-        });
-      }
-    });
-  </script>
 </body>
 </html>
